@@ -35,6 +35,7 @@ import com.calmdrive.visualtimer.engine.HarmonicChimePlayer
 import com.calmdrive.visualtimer.engine.RenderState
 import com.calmdrive.visualtimer.engine.SpokenAlertEngine
 import com.calmdrive.visualtimer.engine.TimerArtworkRenderer
+import com.calmdrive.visualtimer.model.DEFAULT_ROUTINES
 import com.calmdrive.visualtimer.model.NumberMode
 import com.calmdrive.visualtimer.model.PaletteTheme
 import com.calmdrive.visualtimer.model.Routine
