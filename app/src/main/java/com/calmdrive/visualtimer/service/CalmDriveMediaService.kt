@@ -28,6 +28,7 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
         const val ACTION_SUBTRACT_1M = "com.calmdrive.visualtimer.ACTION_SUBTRACT_1M"
         const val ACTION_ADD_1M = "com.calmdrive.visualtimer.ACTION_ADD_1M"
         const val ACTION_ADD_5M = "com.calmdrive.visualtimer.ACTION_ADD_5M"
+        const val ACTION_RESET = "com.calmdrive.visualtimer.ACTION_RESET"
         const val ACTION_SKIP_THEN = "com.calmdrive.visualtimer.ACTION_SKIP_THEN"
 
         private const val NOTIFICATION_ID = 1001
@@ -70,8 +71,7 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
             updateMediaSessionAndNotification(renderState)
         }
 
-        // Start initial state
-        silentKeepAlive.start()
+        // Start initial state in ready/paused mode
         updateMediaSessionAndNotification(timerEngine.buildCurrentState())
     }
 
@@ -99,6 +99,10 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
                 ACTION_SUBTRACT_1M -> timerEngine.adjustTime(-60)
                 ACTION_ADD_1M -> timerEngine.adjustTime(60)
                 ACTION_ADD_5M -> timerEngine.adjustTime(300)
+                ACTION_RESET -> {
+                    timerEngine.resetTimer()
+                    silentKeepAlive.pause()
+                }
                 ACTION_SKIP_THEN -> timerEngine.skipToThen()
             }
         }
@@ -110,12 +114,12 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
                     val id = mediaId.removePrefix("routine_")
                     val found = prefs.getRoutines().find { it.id == id }
                     if (found != null) {
-                        timerEngine.startRoutine(found, announce = true)
+                        timerEngine.startRoutine(found, announce = true, autoStart = false)
                     }
                 }
                 mediaId.startsWith("quick_") -> {
                     val mins = mediaId.removePrefix("quick_").toIntOrNull() ?: 5
-                    timerEngine.startQuickTimer(mins)
+                    timerEngine.startQuickTimer(mins, autoStart = false)
                 }
                 mediaId.startsWith("style_") -> {
                     val styleId = mediaId.removePrefix("style_")
@@ -137,6 +141,7 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
         }
 
         val subtitleText = when {
+            state.remainingSec == state.totalSec && state.isPaused -> "Ready • Tap Play to start"
             state.isPaused -> "⏸ Paused (Tap Play to resume)"
             state.isFirstStep && !state.thenTitle.isNullOrEmpty() ->
                 "Then: ${state.thenIcon ?: "✨"} ${state.thenTitle} (${timerEngine.activeRoutine.thenMins}m)"
@@ -191,6 +196,13 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
                     ACTION_ADD_5M,
                     getString(R.string.action_plus_5m),
                     R.drawable.ic_plus_5m
+                ).build()
+            )
+            .addCustomAction(
+                PlaybackStateCompat.CustomAction.Builder(
+                    ACTION_RESET,
+                    getString(R.string.action_reset),
+                    R.drawable.ic_reset
                 ).build()
             )
 

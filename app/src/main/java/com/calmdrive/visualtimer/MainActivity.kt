@@ -261,7 +261,10 @@ fun CompanionAppScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Quick Actions
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             val engine = CalmDriveMediaService.instance?.timerEngine
                             Button(
                                 onClick = { engine?.adjustTime(-60) },
@@ -293,6 +296,15 @@ fun CompanionAppScreen(
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0x1FFFFFFF))
                             ) {
                                 Text("+1m", fontSize = 12.sp, color = Color.White)
+                            }
+
+                            Button(
+                                onClick = { engine?.resetTimer() },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x1FFFFFFF))
+                            ) {
+                                Text("↺ Reset", fontSize = 12.sp, color = Color(0xFFA2ADC2))
                             }
                         }
                     }
@@ -565,7 +577,7 @@ fun CompanionAppScreen(
                         modifier = Modifier
                             .weight(1f)
                             .clickable {
-                                CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true)
+                                CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true, autoStart = false)
                             },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -620,20 +632,31 @@ fun CompanionAppScreen(
                             )
                         }
 
-                        // Start / Active badge
+                        // Start / Active / Load badge
+                        val engine = CalmDriveMediaService.instance?.timerEngine
+                        val isPlaying = isActive && renderState?.isPaused == false
                         Surface(
                             shape = RoundedCornerShape(99.dp),
-                            color = if (isActive) Color(0x3334D399) else Color(0x1CFFFFFF),
+                            color = if (isPlaying) Color(0x3334D399) else if (isActive) Color(0x338AB4F8) else Color(0x1CFFFFFF),
                             modifier = Modifier.clickable {
-                                CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true)
+                                if (isActive) {
+                                    engine?.togglePlayPause()
+                                } else {
+                                    engine?.startRoutine(routine, announce = true, autoStart = false)
+                                }
                             }
                         ) {
+                            val badgeLabel = when {
+                                isPlaying -> "⏸ Pause"
+                                isActive -> "▶ Start"
+                                else -> "Load"
+                            }
                             Text(
-                                text = if (isActive) "Active" else "Start ▶",
+                                text = badgeLabel,
                                 modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isActive) Color(0xFF34D399) else Color.White
+                                color = if (isPlaying) Color(0xFF34D399) else if (isActive) Color(0xFF8AB4F8) else Color.White
                             )
                         }
                     }
@@ -696,7 +719,7 @@ fun CompanionAppScreen(
                 }
                 routines = updated
                 prefs.saveRoutines(updated)
-                CalmDriveMediaService.instance?.timerEngine?.startRoutine(savedRoutine, announce = true)
+                CalmDriveMediaService.instance?.timerEngine?.startRoutine(savedRoutine, announce = true, autoStart = false)
                 showEditDialog = false
                 routineToEdit = null
             },
@@ -818,7 +841,7 @@ fun RoutineEditDialog(
                     }
                 }
             ) {
-                Text(if (routineToEdit == null) "Save & Start" else "Save Changes")
+                Text(if (routineToEdit == null) "Save Routine" else "Save Changes")
             }
         },
         dismissButton = {

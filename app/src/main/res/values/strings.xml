@@ -5,6 +5,7 @@
     <string name="action_plus_1m">+1 min</string>
     <string name="action_plus_5m">+5 min</string>
     <string name="action_skip_then">Skip to Then</string>
+    <string name="action_reset">Reset</string>
     <string name="notification_channel_name">Visual Timer Alerts</string>
     <string name="notification_channel_desc">Active countdown and milestone transition warnings</string>
 </resources>

@@ -607,7 +607,7 @@ class VisualTimerApp {
     this.step = 'first'; // 'first' | 'then'
     this.totalSec = this.activeRoutine.firstMins * 60;
     this.remainingSec = this.totalSec;
-    this.isPaused = false;
+    this.isPaused = true;
     this.simSpeed = 1; // 1x, 10x, 30x
 
     // Kid Sensory & Visual Preferences
@@ -625,7 +625,7 @@ class VisualTimerApp {
     this.bindEvents();
     this.renderRoutinesList();
     this.renderDrawerContent();
-    this.startRoutine(this.activeRoutine, false);
+    this.startRoutine(this.activeRoutine, false, false);
 
     // Main Loop (100ms tick for smooth progress & speed multipliers)
     this.lastTick = performance.now();
@@ -653,14 +653,14 @@ class VisualTimerApp {
     }
   }
 
-  startRoutine(routine, announce = true) {
+  startRoutine(routine, announce = true, autoStart = false) {
     this.activeRoutine = routine;
     this.step = 'first';
     this.totalSec = routine.firstMins * 60;
     this.remainingSec = this.totalSec;
     this.mapsSim.etaSeconds = this.totalSec;
     this.mapsSim.trafficState = 'smooth';
-    this.isPaused = false;
+    this.isPaused = !autoStart;
     this.firedMilestones.clear();
 
     document.getElementById('mapsDestBannerName').textContent =
@@ -674,14 +674,27 @@ class VisualTimerApp {
       if (this.chimesEnabled) this.audio.playGentleChime('milestone');
       if (this.voiceEnabled) {
         const thenPart = routine.thenTitle ? `. Then: ${routine.thenTitle}.` : '';
+        const prompt = autoStart ? 'Starting timer' : 'Timer ready';
         this.audio.speakCalmWarning(
-          `Starting timer: ${routine.firstMins} minutes for ${routine.firstTitle}${thenPart}`
+          `${prompt}: ${routine.firstMins} minutes for ${routine.firstTitle}${thenPart}`
         );
       }
     }
   }
 
-  startQuickTimer(mins) {
+  resetTimer() {
+    this.step = 'first';
+    this.remainingSec = this.totalSec;
+    this.mapsSim.etaSeconds = this.totalSec;
+    this.mapsSim.trafficState = 'smooth';
+    this.isPaused = true;
+    this.firedMilestones.clear();
+    this.renderRoutinesList();
+    this.updateAllUI();
+    this.showCarToast('↺', 'Timer Reset', `${this.getCurrentTitle()} reset to ${Math.round(this.totalSec / 60)} min (Tap Play to start)`);
+  }
+
+  startQuickTimer(mins, autoStart = false) {
     const customQuick = {
       id: `quick-${mins}`,
       firstTitle: `${mins} Minute Timer`,
@@ -692,7 +705,7 @@ class VisualTimerApp {
       thenMins: 0,
       destStreet: 'Current Route'
     };
-    this.startRoutine(customQuick, true);
+    this.startRoutine(customQuick, true, autoStart);
   }
 
   switchToThenStep() {
@@ -946,7 +959,8 @@ class VisualTimerApp {
     }
 
     if (this.isPaused) {
-      subEl.textContent = '⏸ Paused — Tap Play to resume';
+      const isAtStart = this.remainingSec === this.totalSec;
+      subEl.textContent = isAtStart ? '⏸ Ready — Tap Play to start' : '⏸ Paused — Tap Play to resume';
     } else if (this.step === 'first' && this.activeRoutine.thenTitle) {
       subEl.textContent = `Then: ${this.activeRoutine.thenIcon || '✨'} ${this.activeRoutine.thenTitle} (${this.activeRoutine.thenMins}m)`;
     } else {
@@ -963,8 +977,11 @@ class VisualTimerApp {
 
     // Play/Pause Buttons & Skip-to-Then visibility
     const playIcon = this.isPaused ? '▶' : '⏸';
+    const isAtStart = this.remainingSec === this.totalSec;
     document.getElementById('carBtnPlayPause').textContent = playIcon;
-    document.getElementById('phoneBtnPlayPause').textContent = this.isPaused ? '▶ Resume' : '⏸ Pause';
+    document.getElementById('phoneBtnPlayPause').textContent = this.isPaused
+      ? (isAtStart ? '▶ Start' : '▶ Resume')
+      : '⏸ Pause';
 
     const skipBtn = document.getElementById('carBtnSkipThen');
     if (this.step === 'first' && this.activeRoutine.thenTitle && this.activeRoutine.thenMins > 0) {
@@ -1023,8 +1040,11 @@ class VisualTimerApp {
 
     this.routines.forEach((r) => {
       const item = document.createElement('div');
-      item.className = `routine-item ${r.id === this.activeRoutine.id ? 'active' : ''}`;
+      const isActive = r.id === this.activeRoutine.id;
+      const isPlaying = isActive && !this.isPaused;
+      item.className = `routine-item ${isActive ? 'active' : ''}`;
       const thenText = r.thenTitle ? ` → Then: ${r.thenIcon} ${r.thenTitle} (${r.thenMins}m)` : '';
+      const badgeLabel = isPlaying ? '⏸ Pause' : (isActive ? '▶ Start' : 'Load');
       item.innerHTML = `
         <div class="routine-main">
           <span class="routine-emoji">${r.firstIcon}</span>
@@ -1036,12 +1056,31 @@ class VisualTimerApp {
         <div class="routine-right-actions">
           <button class="routine-icon-btn edit" title="Edit Routine">✏️</button>
           <button class="routine-icon-btn delete" title="Delete Routine">🗑️</button>
-          <span class="routine-start-pill">${r.id === this.activeRoutine.id ? 'Active' : 'Start ▶'}</span>
+          <span class="routine-start-pill ${isPlaying ? 'playing' : ''}">${badgeLabel}</span>
         </div>
       `;
 
-      item.querySelector('.routine-main').addEventListener('click', () => this.startRoutine(r, true));
-      item.querySelector('.routine-start-pill').addEventListener('click', () => this.startRoutine(r, true));
+      item.querySelector('.routine-main').addEventListener('click', () => {
+        if (isActive) {
+          this.isPaused = !this.isPaused;
+          this.updateAllUI();
+          this.renderRoutinesList();
+        } else {
+          this.startRoutine(r, true, false);
+          this.renderRoutinesList();
+        }
+      });
+      item.querySelector('.routine-start-pill').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isActive) {
+          this.isPaused = !this.isPaused;
+          this.updateAllUI();
+          this.renderRoutinesList();
+        } else {
+          this.startRoutine(r, true, false);
+          this.renderRoutinesList();
+        }
+      });
 
       item.querySelector('.routine-icon-btn.edit').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1067,7 +1106,7 @@ class VisualTimerApp {
     document.getElementById('inputThenTitle').value = r && r.thenTitle ? r.thenTitle : '';
     document.getElementById('inputThenIcon').value = r && r.thenIcon ? r.thenIcon : '🍪';
     document.getElementById('inputThenMins').value = r && r.thenMins ? r.thenMins : '5';
-    document.getElementById('btnSubmitRoutine').textContent = r ? 'Save Changes' : 'Save & Start Routine';
+    document.getElementById('btnSubmitRoutine').textContent = r ? 'Save Changes' : 'Save Routine';
     document.getElementById('btnCancelRoutine').classList.remove('hidden');
     form.classList.remove('hidden');
     form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1081,7 +1120,7 @@ class VisualTimerApp {
       }
       this.saveRoutines();
       if (this.activeRoutine.id === r.id) {
-        this.startRoutine(this.routines[0], false);
+        this.startRoutine(this.routines[0], false, false);
       }
       this.renderRoutinesList();
       this.renderDrawerContent();
@@ -1094,7 +1133,7 @@ class VisualTimerApp {
     form.reset();
     document.getElementById('editRoutineId').value = '';
     document.getElementById('formHeaderTitle').textContent = 'New Routine';
-    document.getElementById('btnSubmitRoutine').textContent = 'Save & Start Routine';
+    document.getElementById('btnSubmitRoutine').textContent = 'Save Routine';
     document.getElementById('btnCancelRoutine').classList.add('hidden');
     form.classList.add('hidden');
   }
@@ -1108,6 +1147,7 @@ class VisualTimerApp {
         const btn = document.createElement('button');
         btn.className = 'car-browse-item';
         const thenText = r.thenTitle ? `Then: ${r.thenIcon} ${r.thenTitle}` : 'Single Timer';
+        const isLoaded = r.id === this.activeRoutine.id;
         btn.innerHTML = `
           <div class="car-browse-item-left">
             <span class="car-browse-emoji">${r.firstIcon}</span>
@@ -1116,11 +1156,12 @@ class VisualTimerApp {
               <div class="car-browse-sub">${thenText}</div>
             </div>
           </div>
-          <span class="car-browse-Select">▶ Start</span>
+          <span class="car-browse-Select">${isLoaded ? '✓ Loaded' : 'Select'}</span>
         `;
         btn.addEventListener('click', () => {
-          this.startRoutine(r, true);
+          this.startRoutine(r, true, false);
           document.getElementById('carBrowseDrawer').classList.add('hidden');
+          this.renderRoutinesList();
         });
         container.appendChild(btn);
       });
@@ -1132,8 +1173,9 @@ class VisualTimerApp {
         qBtn.className = 'car-quick-btn';
         qBtn.textContent = `${mins} min`;
         qBtn.addEventListener('click', () => {
-          this.startQuickTimer(mins);
+          this.startQuickTimer(mins, false);
           document.getElementById('carBrowseDrawer').classList.add('hidden');
+          this.renderRoutinesList();
         });
         grid.appendChild(qBtn);
       });
@@ -1209,10 +1251,12 @@ class VisualTimerApp {
     document.getElementById('carBtnPlayPause').addEventListener('click', () => {
       this.isPaused = !this.isPaused;
       this.updateAllUI();
+      this.renderRoutinesList();
     });
     document.getElementById('carBtnMinus1').addEventListener('click', () => this.adjustTime(-60));
     document.getElementById('carBtnPlus1').addEventListener('click', () => this.adjustTime(60));
     document.getElementById('carBtnPlus5').addEventListener('click', () => this.adjustTime(300));
+    document.getElementById('carBtnReset').addEventListener('click', () => this.resetTimer());
     document.getElementById('carBtnSkipThen').addEventListener('click', () => this.switchToThenStep());
 
     // Tap Car Artwork to cycle visual style quickly
@@ -1279,11 +1323,12 @@ class VisualTimerApp {
     document.getElementById('phoneBtnPlayPause').addEventListener('click', () => {
       this.isPaused = !this.isPaused;
       this.updateAllUI();
+      this.renderRoutinesList();
     });
     document.getElementById('phoneBtnMinus1').addEventListener('click', () => this.adjustTime(-60));
     document.getElementById('phoneBtnPlus1').addEventListener('click', () => this.adjustTime(60));
     document.getElementById('phoneBtnReset').addEventListener('click', () => {
-      this.startRoutine(this.activeRoutine, false);
+      this.resetTimer();
     });
 
     // Phone Visual Style Picker
@@ -1377,7 +1422,7 @@ class VisualTimerApp {
           this.renderRoutinesList();
           this.renderDrawerContent();
           if (this.activeRoutine.id === editId) {
-            this.startRoutine(updated, true);
+            this.startRoutine(updated, true, false);
           }
           this.showCarToast('✏️', 'Routine Updated', `Saved changes to "${firstTitle}"`);
         }
@@ -1397,7 +1442,8 @@ class VisualTimerApp {
         this.routines.unshift(newRoutine);
         this.saveRoutines();
         this.closeRoutineEditor();
-        this.startRoutine(newRoutine, true);
+        this.startRoutine(newRoutine, true, false);
+        this.renderRoutinesList();
       }
     });
   }

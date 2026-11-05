@@ -33,7 +33,7 @@ class TimerEngine(private val context: Context) {
     var remainingSec: Int = totalSec
         private set
 
-    var isPaused = false
+    var isPaused = true
         private set
 
     private val firedMilestones = mutableSetOf<String>()
@@ -41,19 +41,23 @@ class TimerEngine(private val context: Context) {
     var onStateChanged: ((RenderState) -> Unit)? = null
 
     init {
-        startRoutine(activeRoutine, announce = false)
+        startRoutine(activeRoutine, announce = false, autoStart = false)
     }
 
-    fun startRoutine(routine: Routine, announce: Boolean = true) {
+    fun startRoutine(routine: Routine, announce: Boolean = true, autoStart: Boolean = false) {
         activeRoutine = routine
         prefs.activeRoutineId = routine.id
         isFirstStep = true
         totalSec = routine.firstMins * 60
         remainingSec = totalSec
-        isPaused = false
+        isPaused = !autoStart
         firedMilestones.clear()
 
-        restartTicker()
+        if (autoStart) {
+            restartTicker()
+        } else {
+            tickerJob?.cancel()
+        }
         notifyState()
 
         if (announce) {
@@ -64,12 +68,23 @@ class TimerEngine(private val context: Context) {
                 val thenPart = if (!routine.thenTitle.isNullOrEmpty()) {
                     ". Then: ${routine.thenTitle}."
                 } else ""
-                spokenEngine.speak("Starting timer: ${routine.firstMins} minutes for ${routine.firstTitle}$thenPart")
+                val prompt = if (autoStart) "Starting timer" else "Timer ready"
+                spokenEngine.speak("$prompt: ${routine.firstMins} minutes for ${routine.firstTitle}$thenPart")
             }
         }
     }
 
-    fun startQuickTimer(mins: Int) {
+    fun resetTimer() {
+        isFirstStep = true
+        totalSec = activeRoutine.firstMins * 60
+        remainingSec = totalSec
+        isPaused = true
+        firedMilestones.clear()
+        tickerJob?.cancel()
+        notifyState()
+    }
+
+    fun startQuickTimer(mins: Int, autoStart: Boolean = false) {
         val quick = Routine(
             id = "quick-$mins",
             firstTitle = "$mins Minute Timer",
@@ -79,13 +94,15 @@ class TimerEngine(private val context: Context) {
             thenIcon = "🌟",
             thenMins = 0
         )
-        startRoutine(quick, announce = true)
+        startRoutine(quick, announce = true, autoStart = autoStart)
     }
 
     fun togglePlayPause(): Boolean {
         isPaused = !isPaused
-        if (!isPaused && tickerJob?.isActive != true) {
+        if (!isPaused) {
             restartTicker()
+        } else {
+            tickerJob?.cancel()
         }
         notifyState()
         return isPaused
