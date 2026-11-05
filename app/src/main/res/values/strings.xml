@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">CalmDrive Timer</string>
+    <string name="media_service_label">CalmDrive Visual Timer Service</string>
+    <string name="action_minus_1m">-1 min</string>
+    <string name="action_plus_1m">+1 min</string>
+    <string name="action_plus_5m">+5 min</string>
+    <string name="action_skip_then">Skip to Then</string>
+    <string name="notification_channel_name">Visual Timer Alerts</string>
+    <string name="notification_channel_desc">Active countdown and milestone transition warnings</string>
+</resources>

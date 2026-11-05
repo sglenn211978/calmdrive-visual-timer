@@ -1,0 +1,1382 @@
+:root {
+  --bg-app: #090b10;
+  --bg-surface: #121620;
+  --bg-card: #191e2b;
+  --bg-card-hover: #22293a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(120, 180, 255, 0.28);
+
+  /* Android Auto Coolwalk Authentic Tokens */
+  --aa-bg: #0c0e12;
+  --aa-rail: #12151c;
+  --aa-card: #1b1f29;
+  --aa-card-inner: #242936;
+  --aa-accent: #8ab4f8;
+  --aa-maps-green: #1e8e3e;
+
+  /* Text */
+  --text-primary: #f3f6fc;
+  --text-secondary: #a2adc2;
+  --text-muted: #6c778d;
+
+  /* Semantic Status Colors */
+  --calm-green: #34d399;
+  --calm-amber: #fbbf24;
+  --calm-coral: #fb7185;
+  --calm-blue: #38bdf8;
+  --calm-purple: #a78bfa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ==========================================
+   TOP SIMULATOR BAR
+   ========================================== */
+.sim-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(18, 22, 32, 0.92);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 20;
+}
+
+.sim-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-logo-badge {
+  font-size: 1.65rem;
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(56, 189, 248, 0.2));
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.sim-brand h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sim-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.sim-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.control-pill-group {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  gap: 4px;
+}
+
+.pill-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0 8px;
+  font-weight: 600;
+}
+
+.pill-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pill-btn.active {
+  background: var(--aa-accent);
+  color: #09101d;
+}
+
+/* ==========================================
+   MAIN WORKSPACE LAYOUT
+   ========================================== */
+.sim-workspace {
+  display: grid;
+  grid-template-columns: minmax(640px, 1fr) 430px;
+  gap: 20px;
+  padding: 18px 24px;
+  flex: 1;
+  align-items: start;
+}
+
+.sim-workspace.car-only-mode {
+  grid-template-columns: 1fr;
+  max-width: 1380px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sim-workspace.car-only-mode .phone-pane {
+  display: none;
+}
+
+.pane-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.pane-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pane-title-group h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.status-dot.live {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--calm-green);
+  box-shadow: 0 0 10px var(--calm-green);
+}
+
+.badge-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(138, 180, 248, 0.14);
+  color: var(--aa-accent);
+  border: 1px solid rgba(138, 180, 248, 0.3);
+}
+
+.car-quick-hints {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================
+   ANDROID AUTO COOLWALK HEAD UNIT SIMULATOR
+   ========================================== */
+.headunit-bezel {
+  background: linear-gradient(145deg, #212631, #11141b);
+  padding: 16px;
+  border-radius: 30px;
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.65),
+    inset 0 1px 2px rgba(255, 255, 255, 0.12);
+  border: 2px solid #2b3240;
+}
+
+.coolwalk-screen {
+  position: relative;
+  background: var(--aa-bg);
+  border-radius: 20px;
+  height: 510px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: height 0.25s ease;
+}
+
+.coolwalk-screen.widescreen {
+  height: 550px;
+}
+
+/* Coolwalk Left Dock / Rail */
+.coolwalk-rail {
+  width: 68px;
+  background: var(--aa-rail);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 5;
+}
+
+.rail-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.rail-clock {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rail-status-icons {
+  font-size: 0.68rem;
+  display: flex;
+  gap: 3px;
+  opacity: 0.8;
+}
+
+.rail-apps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.rail-app-btn {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.rail-app-btn:hover {
+  transform: scale(1.06);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.rail-app-btn.active-nav {
+  box-shadow: inset 0 0 0 2px rgba(52, 211, 153, 0.55);
+}
+
+.rail-app-btn.active-media {
+  background: rgba(138, 180, 248, 0.18);
+  box-shadow: inset 0 0 0 2px var(--aa-accent);
+}
+
+.mini-playing-indicator {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--calm-green);
+  border: 2px solid var(--aa-rail);
+}
+
+.rail-launcher-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rail-launcher-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Coolwalk Split-Screen Multi-Card Area */
+.coolwalk-cards-container {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 62% 38%;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.coolwalk-screen.widescreen .coolwalk-cards-container {
+  grid-template-columns: 65% 35%;
+}
+
+.coolwalk-card {
+  background: var(--aa-card);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================
+   PRIMARY CARD (65%): GOOGLE MAPS SIMULATOR
+   ========================================== */
+.maps-card {
+  position: relative;
+  background: #161b24;
+}
+
+#mapsCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.maps-nav-banner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  background: #166534;
+  color: #fff;
+  border-radius: 18px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.turn-arrow {
+  font-size: 2rem;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.22);
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.turn-distance {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.turn-street {
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+
+/* Traffic Simulator Overlay */
+.maps-sim-controls {
+  position: absolute;
+  bottom: 78px;
+  left: 12px;
+  right: 12px;
+  background: rgba(15, 19, 28, 0.88);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.maps-sim-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.maps-sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--calm-blue);
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.maps-sync-pill input {
+  accent-color: var(--calm-blue);
+  cursor: pointer;
+}
+
+.maps-sim-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.maps-traffic-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.maps-traffic-btn.delay:hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: var(--calm-amber);
+}
+
+.maps-traffic-btn.faster:hover {
+  background: rgba(52, 211, 153, 0.2);
+  border-color: var(--calm-green);
+}
+
+/* Bottom Maps ETA Bar */
+.maps-eta-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: #1e2330;
+  border-radius: 16px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.eta-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eta-minutes {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--calm-green);
+}
+
+.eta-traffic-badge {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--calm-green);
+  font-weight: 600;
+}
+
+.eta-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ==========================================
+   SECONDARY CARD (35%): VISUAL TIMER MEDIA TILE
+   ========================================== */
+.media-tile-card {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  background: linear-gradient(180deg, #1d2331 0%, #151924 100%);
+}
+
+.media-tile-backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 35%, var(--calm-green), transparent 72%);
+  transition: background 0.5s ease;
+}
+
+.media-tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.media-app-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.media-app-badge {
+  font-size: 0.95rem;
+}
+
+.media-app-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+.sync-active-pill {
+  font-size: 0.65rem;
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--calm-blue);
+  padding: 2px 6px;
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+.tile-browse-btn {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-primary);
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tile-browse-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Artwork Wrapper (METADATA_KEY_ALBUM_ART) */
+.media-artwork-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 225px;
+  aspect-ratio: 1 / 1;
+  margin: 4px auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  z-index: 2;
+  background: #0f131c;
+}
+
+#carArtworkCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.artwork-tap-hint {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.63rem;
+  padding: 2px 8px;
+  border-radius: 99px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.media-artwork-wrapper:hover .artwork-tap-hint {
+  opacity: 1;
+}
+
+/* Media Metadata Block */
+.media-metadata-block {
+  text-align: center;
+  z-index: 2;
+  margin: 2px 0;
+}
+
+.media-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-subtitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aa-accent);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Native Progress Bar */
+.media-progress-container {
+  z-index: 2;
+  padding: 4px 2px;
+}
+
+.media-progress-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.media-progress-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--calm-green);
+  border-radius: 99px;
+  transition: width 0.25s linear, background-color 0.3s ease;
+}
+
+/* Transport Controls Row */
+.media-transport-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 2;
+  padding-top: 2px;
+}
+
+.transport-btn {
+  border: none;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  transition: transform 0.12s ease, background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transport-btn:active {
+  transform: scale(0.94);
+}
+
+.transport-btn.custom-action {
+  height: 40px;
+  padding: 0 11px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transport-btn.custom-action:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.transport-btn.primary-play {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--aa-accent);
+  color: #08101e;
+  font-size: 1.15rem;
+  box-shadow: 0 4px 14px rgba(138, 180, 248, 0.4);
+}
+
+.transport-btn.primary-play:hover {
+  background: #a3c6ff;
+}
+
+.transport-btn.skip-then {
+  background: rgba(167, 139, 250, 0.22);
+  color: #ddd6fe;
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* ==========================================
+   EXPANDABLE CAR BROWSE DRAWER (MediaBrowserService)
+   ========================================== */
+.car-browse-drawer {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 24, 34, 0.98);
+  backdrop-filter: blur(14px);
+  z-index: 10;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.drawer-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.drawer-tab {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drawer-tab.active {
+  background: var(--aa-accent);
+  color: #09111e;
+}
+
+.drawer-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-right: 4px;
+}
+
+.car-browse-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  transition: background 0.15s ease;
+}
+
+.car-browse-item:hover {
+  background: rgba(138, 180, 248, 0.16);
+  border-color: rgba(138, 180, 248, 0.35);
+}
+
+.car-browse-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.car-browse-emoji {
+  font-size: 1.35rem;
+}
+
+.car-browse-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.car-browse-sub {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.car-browse-Select {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--aa-accent);
+}
+
+.car-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.car-quick-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 14px 8px;
+  border-radius: 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.car-quick-btn:hover {
+  background: rgba(52, 211, 153, 0.2);
+  border-color: var(--calm-green);
+}
+
+/* ==========================================
+   HEAD UNIT MILESTONE TOAST NOTIFICATION
+   ========================================== */
+.car-milestone-toast {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22, 28, 40, 0.96);
+  border: 2px solid var(--aa-accent);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  padding: 12px 20px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 30;
+  animation: toastSlideDown 0.25s ease-out;
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.toast-icon {
+  font-size: 1.5rem;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.toast-text strong {
+  font-size: 0.92rem;
+  color: #fff;
+}
+
+.toast-text span {
+  font-size: 0.76rem;
+  color: var(--aa-accent);
+}
+
+/* Architecture Footnote Strip */
+.architecture-strip {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.arch-item {
+  flex: 1;
+  min-width: 180px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arch-tag {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   RIGHT PANE: PHONE COMPANION APP
+   ========================================== */
+.phone-device-frame {
+  background: #10141f;
+  border: 3px solid #283044;
+  border-radius: 34px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  max-height: 760px;
+}
+
+.phone-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  background: #0c0f18;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.phone-auto-connected {
+  color: var(--calm-green);
+  background: rgba(52, 211, 153, 0.12);
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.phone-scroll-body {
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phone-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.phone-active-top {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+#phonePreviewCanvas {
+  width: 108px;
+  height: 108px;
+  border-radius: 16px;
+  background: #0c0f17;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.phone-active-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-pill {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--calm-green);
+  margin-bottom: 3px;
+}
+
+.phone-active-info h3 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phone-time-readout {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 2px 0;
+}
+
+.phone-then-preview {
+  font-size: 0.74rem;
+  color: var(--aa-accent);
+  margin-bottom: 8px;
+}
+
+.phone-quick-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.p-action-btn {
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.p-action-btn.primary {
+  background: var(--aa-accent);
+  color: #081120;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.card-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.card-section-title small {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Style Selector Grid */
+.style-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.style-card-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 9px 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.style-card-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.style-card-btn.active {
+  background: rgba(138, 180, 248, 0.16);
+  border-color: var(--aa-accent);
+  box-shadow: inset 0 0 0 1px var(--aa-accent);
+}
+
+.style-emoji {
+  font-size: 1.25rem;
+}
+
+.style-card-btn strong {
+  font-size: 0.73rem;
+}
+
+.style-card-btn small {
+  font-size: 0.63rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+/* Sensory Settings */
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.setting-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #111520;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  gap: 3px;
+}
+
+.seg-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.seg-btn.active {
+  background: var(--bg-card-hover);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.toggles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.toggle-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  padding: 7px 9px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.toggle-chip input {
+  accent-color: var(--calm-green);
+}
+
+.milestone-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.m-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.m-chip input {
+  accent-color: var(--aa-accent);
+}
+
+.test-audio-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-test-audio {
+  flex: 1;
+  background: rgba(138, 180, 248, 0.12);
+  border: 1px solid rgba(138, 180, 248, 0.28);
+  color: var(--aa-accent);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-test-audio:hover {
+  background: rgba(138, 180, 248, 0.22);
+}
+
+/* Routines & Custom Creator */
+.btn-new-routine {
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: var(--calm-green);
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.routine-creator-form {
+  background: #121622;
+  border: 1px solid var(--border-highlight);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 8px;
+}
+
+.form-row-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.routine-creator-form label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.routine-creator-form input {
+  width: 100%;
+  background: #1b2130;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 7px;
+  font-size: 0.75rem;
+}
+
+.btn-save-routine {
+  width: 100%;
+  background: var(--calm-green);
+  color: #061510;
+  border: none;
+  padding: 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.routines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.routine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.routine-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(138, 180, 248, 0.3);
+}
+
+.routine-item.active {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: var(--calm-green);
+}
+
+.routine-main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.routine-emoji {
+  font-size: 1.3rem;
+}
+
+.routine-text strong {
+  display: block;
+  font-size: 0.78rem;
+}
+
+.routine-text small {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+.routine-start-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 1120px) {
+  .sim-workspace {
+    grid-template-columns: 1fr;
+  }
+  .phone-device-frame {
+    max-height: none;
+  }
+}

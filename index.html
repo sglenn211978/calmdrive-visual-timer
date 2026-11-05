@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CalmDrive — Android Auto Visual Timer Simulator (Coolwalk Split-Screen)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Simulator Control Bar -->
+  <header class="sim-topbar">
+    <div class="sim-brand">
+      <span class="sim-logo-badge">🚗⏱️</span>
+      <div>
+        <h1>CalmDrive Visual Timer</h1>
+        <p class="sim-subtitle">Android Auto "Coolwalk" Split-Screen Media Tile + Phone Companion Prototype</p>
+      </div>
+    </div>
+
+    <div class="sim-toolbar-controls">
+      <div class="control-pill-group" title="Simulation Speed (test transitions & milestones quickly)">
+        <span class="pill-label">Sim Speed:</span>
+        <button class="pill-btn active" data-speed="1">1× Real</button>
+        <button class="pill-btn" data-speed="10">10× Fast</button>
+        <button class="pill-btn" data-speed="30">30× Demo</button>
+      </div>
+
+      <div class="control-pill-group" title="Head Unit Aspect Ratio / Tile Layout">
+        <span class="pill-label">Car Screen:</span>
+        <button class="pill-btn active" data-car-layout="standard">Standard 800×480</button>
+        <button class="pill-btn" data-car-layout="widescreen">Widescreen 1280×720</button>
+      </div>
+
+      <div class="control-pill-group" title="View Mode">
+        <button class="pill-btn active" data-view-mode="both">Car + Phone</button>
+        <button class="pill-btn" data-view-mode="car-only">Car Screen Only</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="sim-workspace" id="simWorkspace">
+    
+    <!-- LEFT PANE: ANDROID AUTO COOLWALK HEAD UNIT SIMULATOR -->
+    <section class="car-pane" id="carPane">
+      <div class="pane-header">
+        <div class="pane-title-group">
+          <span class="status-dot live"></span>
+          <h2>Android Auto Head Unit Display (Coolwalk Split-Screen)</h2>
+          <span class="badge-tag">MediaSession Tile • 35% Screen Width</span>
+        </div>
+        <div class="car-quick-hints">
+          <span>💡 Notice how <strong>Google Maps stays 100% visible</strong> on the left while the <strong>Visual Timer occupies the Media Tile</strong> on the right.</span>
+        </div>
+      </div>
+
+      <!-- The Head Unit Bezel -->
+      <div class="headunit-bezel" id="headunitBezel">
+        <div class="coolwalk-screen" id="coolwalkScreen">
+          
+          <!-- Coolwalk Left Navigation Rail -->
+          <aside class="coolwalk-rail">
+            <div class="rail-top">
+              <div class="rail-clock" id="carClock">1:27</div>
+              <div class="rail-status-icons">
+                <span title="5G Signal">📶</span>
+                <span title="Phone Battery">🔋</span>
+              </div>
+            </div>
+
+            <div class="rail-apps">
+              <button class="rail-app-btn active-nav" id="railMapsBtn" title="Google Maps (Primary Area)">
+                <span class="app-icon maps-icon">🗺️</span>
+              </button>
+              <button class="rail-app-btn active-media" id="railTimerBtn" title="CalmDrive Visual Timer (Open Full / Toggle Browse)">
+                <span class="app-icon timer-icon">⏱️</span>
+                <span class="mini-playing-indicator"></span>
+              </button>
+              <button class="rail-app-btn" id="railMicBtn" title="Test Spoken Transition Update (TTS)">
+                <span class="app-icon mic-icon">🎙️</span>
+              </button>
+            </div>
+
+            <div class="rail-bottom">
+              <button class="rail-launcher-btn" id="railLauncherBtn" title="Toggle Android Auto Media Browser Drawer">
+                <span class="launcher-grid-icon">⠿</span>
+              </button>
+            </div>
+          </aside>
+
+          <!-- Coolwalk Main Multi-Card Area -->
+          <div class="coolwalk-cards-container">
+            
+            <!-- PRIMARY CARD (65%): Google Maps Navigation -->
+            <div class="coolwalk-card maps-card" id="mapsCard">
+              <!-- Live Vector Map Canvas -->
+              <canvas id="mapsCanvas" width="700" height="480"></canvas>
+
+              <!-- Top Turn-by-Turn Navigation Banner -->
+              <div class="maps-nav-banner">
+                <div class="turn-arrow">↱</div>
+                <div class="turn-details">
+                  <div class="turn-distance" id="mapsTurnDist">0.4 mi</div>
+                  <div class="turn-street" id="mapsTurnStreet">Keep right toward <span id="mapsDestBannerName">Oak Park Elementary</span></div>
+                </div>
+              </div>
+
+              <!-- Traffic Simulator Controls Overlay (For testing ETA Sync) -->
+              <div class="maps-sim-controls">
+                <div class="maps-sim-title">
+                  <span>🛰️ Maps Traffic Simulator</span>
+                  <label class="maps-sync-pill" title="Automatically locks the Visual Timer to Google Maps' live arrival ETA">
+                    <input type="checkbox" id="mapsEtaSyncToggle" />
+                    <span>Sync Timer to Maps ETA</span>
+                  </label>
+                </div>
+                <div class="maps-sim-buttons">
+                  <button class="maps-traffic-btn delay" id="btnSimTrafficDelay" title="Simulate a 3-minute traffic jam on Google Maps">
+                    🚧 +3m Traffic Delay
+                  </button>
+                  <button class="maps-traffic-btn faster" id="btnSimTrafficFaster" title="Simulate finding a 2-minute faster route">
+                    ⚡ -2m Faster Route
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bottom Google Maps ETA Card -->
+              <div class="maps-eta-bar">
+                <div class="eta-main">
+                  <span class="eta-minutes" id="mapsEtaMinutes">15 min</span>
+                  <span class="eta-traffic-badge" id="mapsTrafficBadge">Smooth traffic</span>
+                </div>
+                <div class="eta-sub">
+                  <span id="mapsDistanceRemaining">6.2 mi</span> • Arrival <span id="mapsArrivalTime">1:42 PM</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECONDARY CARD (35%): CalmDrive Visual Timer (Coolwalk Media Tile) -->
+            <div class="coolwalk-card media-tile-card" id="mediaTileCard">
+              <!-- Subtle Tinted Backdrop from Artwork -->
+              <div class="media-tile-backdrop" id="mediaTileBackdrop"></div>
+
+              <!-- Media Tile Top App Header -->
+              <div class="media-tile-header">
+                <div class="media-app-id">
+                  <span class="media-app-badge">⏱️</span>
+                  <span class="media-app-name">CalmDrive Timer</span>
+                  <span class="sync-active-pill hidden" id="tileSyncBadge">Maps Synced</span>
+                </div>
+                <button class="tile-browse-btn" id="btnOpenBrowseDrawer" title="Open Presets & Style Picker on Car Screen">
+                  📂 Routines ▾
+                </button>
+              </div>
+
+              <!-- Dynamic Album Art Canvas (METADATA_KEY_ALBUM_ART) -->
+              <div class="media-artwork-wrapper" id="mediaArtworkWrapper" title="Tap artwork to cycle visual style (Disc / Car Path / Blocks)">
+                <canvas id="carArtworkCanvas" width="512" height="512"></canvas>
+                <div class="artwork-tap-hint">Tap graphic to switch style</div>
+              </div>
+
+              <!-- Media Metadata (METADATA_KEY_TITLE & METADATA_KEY_ARTIST) -->
+              <div class="media-metadata-block">
+                <div class="media-title" id="carMediaTitle">🟢 15 min left • School 🏫</div>
+                <div class="media-subtitle" id="carMediaSubtitle">Then: 🎒 Drop-off Hug (2 min)</div>
+              </div>
+
+              <!-- Native PlaybackState Progress Bar -->
+              <div class="media-progress-container">
+                <div class="media-progress-track">
+                  <div class="media-progress-fill" id="carMediaProgressFill"></div>
+                </div>
+              </div>
+
+              <!-- Transport & CustomActions Row (PlaybackStateCompat) -->
+              <div class="media-transport-controls">
+                <button class="transport-btn custom-action" id="carBtnMinus1" title="CustomAction: Subtract 1 Minute (-1m)">
+                  -1m
+                </button>
+                <button class="transport-btn primary-play" id="carBtnPlayPause" title="Play / Pause Countdown">
+                  ⏸
+                </button>
+                <button class="transport-btn custom-action" id="carBtnPlus1" title="CustomAction: Add 1 Minute (+1m)">
+                  +1m
+                </button>
+                <button class="transport-btn custom-action" id="carBtnPlus5" title="CustomAction: Add 5 Minutes (+5m)">
+                  +5m
+                </button>
+                <button class="transport-btn custom-action skip-then hidden" id="carBtnSkipThen" title="Jump to 'Then' Activity Now">
+                  ⏭ Then
+                </button>
+              </div>
+
+              <!-- Expandable MediaBrowserService Drawer (Inside Car Card) -->
+              <div class="car-browse-drawer hidden" id="carBrowseDrawer">
+                <div class="drawer-header">
+                  <div class="drawer-tabs">
+                    <button class="drawer-tab active" data-drawer-tab="routines">Saved Routines</button>
+                    <button class="drawer-tab" data-drawer-tab="quick">Quick Timers</button>
+                    <button class="drawer-tab" data-drawer-tab="styles">Visual Style</button>
+                  </div>
+                  <button class="drawer-close-btn" id="btnCloseBrowseDrawer" title="Back to Timer">✕</button>
+                </div>
+                <div class="drawer-content" id="carDrawerContent">
+                  <!-- Populated dynamically by JS -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Toast / Head Unit Notification Banner for Milestone Warnings -->
+          <div class="car-milestone-toast hidden" id="carMilestoneToast">
+            <span class="toast-icon" id="carToastIcon">🔔</span>
+            <div class="toast-text">
+              <strong id="carToastTitle">5 Minutes Left!</strong>
+              <span id="carToastSub">Almost at School 🏫 • Then: Drop-off Hug 🎒</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Technical Architecture Footnote under Car Screen -->
+      <div class="architecture-strip">
+        <div class="arch-item">
+          <span class="arch-tag">Artwork API</span>
+          <span>512×512 <code>Bitmap</code> via <code>METADATA_KEY_ALBUM_ART</code></span>
+        </div>
+        <div class="arch-item">
+          <span class="arch-tag">Controls</span>
+          <span><code>PlaybackStateCompat.CustomAction</code> (-1m, +1m, +5m, Next)</span>
+        </div>
+        <div class="arch-item">
+          <span class="arch-tag">Keep-Alive</span>
+          <span>Silent PCM stream holds Coolwalk Media Card slot</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: PHONE COMPANION APP & SENSORY CONTROLLER -->
+    <aside class="phone-pane" id="phonePane">
+      <div class="pane-header">
+        <div class="pane-title-group">
+          <span>📱</span>
+          <h2>Phone Companion & Kid Sensory Controls</h2>
+        </div>
+      </div>
+
+      <div class="phone-device-frame">
+        <!-- Phone Status Bar -->
+        <div class="phone-statusbar">
+          <span>1:27</span>
+          <span class="phone-auto-connected">🔗 Connected to Android Auto</span>
+          <span>5G 🔋</span>
+        </div>
+
+        <div class="phone-scroll-body">
+          
+          <!-- Active Timer Live Card on Phone -->
+          <div class="phone-card active-timer-card">
+            <div class="phone-active-top">
+              <canvas id="phonePreviewCanvas" width="220" height="220"></canvas>
+              <div class="phone-active-info">
+                <span class="step-pill" id="phoneStepPill">FIRST • NOW RUNNING</span>
+                <h3 id="phoneActiveTitle">🏫 School Drop-off</h3>
+                <div class="phone-time-readout" id="phoneTimeReadout">15:00</div>
+                <div class="phone-then-preview" id="phoneThenPreview">
+                  <span>Then:</span> <strong id="phoneThenLabel">🎒 Drop-off Hug (2m)</strong>
+                </div>
+                <div class="phone-quick-actions">
+                  <button class="p-action-btn" id="phoneBtnMinus1">-1m</button>
+                  <button class="p-action-btn primary" id="phoneBtnPlayPause">⏸ Pause</button>
+                  <button class="p-action-btn" id="phoneBtnPlus1">+1m</button>
+                  <button class="p-action-btn" id="phoneBtnReset" title="Reset Timer">↺</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. Visual Timer Style Selector -->
+          <div class="phone-card">
+            <div class="card-section-title">
+              <span>🎨 1. Visual Timer Graphic Style</span>
+              <small>Shown on Car Media Tile</small>
+            </div>
+            <div class="style-selector-grid">
+              <button class="style-card-btn active" data-style="disc">
+                <span class="style-emoji">🟢</span>
+                <strong>Time Timer Disc</strong>
+                <small>Shrinking wedge + center icon</small>
+              </button>
+              <button class="style-card-btn" data-style="journey">
+                <span class="style-emoji">🚗</span>
+                <strong>Car Journey Path</strong>
+                <small>Car drives along road to goal</small>
+              </button>
+              <button class="style-card-btn" data-style="blocks">
+                <span class="style-emoji">🧩</span>
+                <strong>Calm Blocks</strong>
+                <small>Discrete steps, zero continuous tick</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Sensory & Low-Anxiety Settings -->
+          <div class="phone-card">
+            <div class="card-section-title">
+              <span>🧠 2. Sensory & Low-Anxiety Settings</span>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label">Countdown Number Format</label>
+              <div class="segmented-control" id="numberModeControl">
+                <button class="seg-btn active" data-num-mode="rounded" title="Shows '12 min left', switching to 30s/10s in final minute">
+                  Calm Rounded
+                </button>
+                <button class="seg-btn" data-num-mode="exact" title="Shows exact 12:34 countdown">
+                  Exact MM:SS
+                </button>
+                <button class="seg-btn" data-num-mode="none" title="Hides numbers so kids only focus on shape & color">
+                  No Numbers
+                </button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label">Color Progression Theme</label>
+              <div class="segmented-control" id="paletteControl">
+                <button class="seg-btn active" data-palette="traffic">
+                  🚦 Traffic Light
+                </button>
+                <button class="seg-btn" data-palette="ocean">
+                  🌊 Calm Ocean
+                </button>
+                <button class="seg-btn" data-palette="sunshine">
+                  ☀️ High-Contrast
+                </button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label">Transition Warnings (Prevent Abrupt Endings)</label>
+              <div class="toggles-grid">
+                <label class="toggle-chip">
+                  <input type="checkbox" id="toggleChimes" checked />
+                  <span>🔔 Gentle Harmonic Chimes</span>
+                </label>
+                <label class="toggle-chip">
+                  <input type="checkbox" id="toggleVoice" checked />
+                  <span>🗣️ Spoken Voice (TTS)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label">Alert Milestones</label>
+              <div class="milestone-chips">
+                <label class="m-chip"><input type="checkbox" data-milestone="halfway" checked /> Halfway</label>
+                <label class="m-chip"><input type="checkbox" data-milestone="300" checked /> 5 min</label>
+                <label class="m-chip"><input type="checkbox" data-milestone="120" checked /> 2 min</label>
+                <label class="m-chip"><input type="checkbox" data-milestone="60" checked /> 1 min</label>
+                <label class="m-chip"><input type="checkbox" data-milestone="0" checked /> Done 🎉</label>
+              </div>
+              <div class="test-audio-bar">
+                <button class="btn-test-audio" id="btnTestChime">🔔 Test Gentle Chime</button>
+                <button class="btn-test-audio" id="btnTestVoice">🗣️ Test Spoken Warning</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. First -> Then Routines & Presets -->
+          <div class="phone-card">
+            <div class="card-section-title">
+              <span>📋 3. "First → Then" Car Routines</span>
+              <button class="btn-new-routine" id="btnToggleRoutineCreator">+ Custom Routine</button>
+            </div>
+
+            <!-- Custom Routine Creator Form (Collapsible) -->
+            <form class="routine-creator-form hidden" id="routineCreatorForm">
+              <div class="form-grid-2">
+                <div>
+                  <label>First Activity Name</label>
+                  <input type="text" id="inputFirstTitle" placeholder="e.g., Drive to Grandma's" required />
+                </div>
+                <div class="form-row-split">
+                  <div>
+                    <label>Icon</label>
+                    <input type="text" id="inputFirstIcon" value="🏡" maxlength="4" />
+                  </div>
+                  <div>
+                    <label>Minutes</label>
+                    <input type="number" id="inputFirstMins" value="15" min="1" max="180" required />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div>
+                  <label>"Then" Next Activity (Optional)</label>
+                  <input type="text" id="inputThenTitle" placeholder="e.g., Cookies & Hugs" />
+                </div>
+                <div class="form-row-split">
+                  <div>
+                    <label>Icon</label>
+                    <input type="text" id="inputThenIcon" value="🍪" maxlength="4" />
+                  </div>
+                  <div>
+                    <label>Then Mins</label>
+                    <input type="number" id="inputThenMins" value="5" min="0" max="120" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-save-routine">Save & Start Routine</button>
+              </div>
+            </form>
+
+            <!-- Preset Routines List -->
+            <div class="routines-list" id="phoneRoutinesList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
