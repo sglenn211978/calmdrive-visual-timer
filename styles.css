@@ -1359,6 +1359,69 @@ body {
   color: var(--text-secondary);
 }
 
+.form-actions-split {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel-routine {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 7px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.btn-cancel-routine:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.form-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.routine-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routine-icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.routine-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: scale(1.08);
+}
+
+.routine-icon-btn.delete:hover {
+  background: rgba(251, 113, 133, 0.25);
+  border-color: var(--calm-coral);
+  color: var(--calm-coral);
+}
+
 .routine-start-pill {
   font-size: 0.7rem;
   font-weight: 700;

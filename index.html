@@ -375,12 +375,19 @@
           <!-- 3. First -> Then Routines & Presets -->
           <div class="phone-card">
             <div class="card-section-title">
-              <span>📋 3. "First → Then" Car Routines</span>
+              <div>
+                <span>📋 3. "First → Then" Car Routines</span>
+                <div style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 2px;">Tap ✏️ to edit or 🗑️ to delete</div>
+              </div>
               <button class="btn-new-routine" id="btnToggleRoutineCreator">+ Custom Routine</button>
             </div>
 
             <!-- Custom Routine Creator Form (Collapsible) -->
             <form class="routine-creator-form hidden" id="routineCreatorForm">
+              <input type="hidden" id="editRoutineId" value="" />
+              <div class="form-header-row">
+                <strong id="formHeaderTitle">New Routine</strong>
+              </div>
               <div class="form-grid-2">
                 <div>
                   <label>First Activity Name</label>
@@ -415,8 +422,9 @@
                 </div>
               </div>
 
-              <div class="form-actions">
-                <button type="submit" class="btn-save-routine">Save & Start Routine</button>
+              <div class="form-actions-split">
+                <button type="submit" class="btn-save-routine" id="btnSubmitRoutine">Save & Start Routine</button>
+                <button type="button" class="btn-cancel-routine hidden" id="btnCancelRoutine">Cancel</button>
               </div>
             </form>
 

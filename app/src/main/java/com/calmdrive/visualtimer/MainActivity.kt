@@ -133,7 +133,9 @@ fun CompanionAppScreen(
     var voiceEnabled by remember { mutableStateOf(prefs.voiceEnabled) }
     var mapsSyncEnabled by remember { mutableStateOf(prefs.mapsSyncEnabled) }
     var routines by remember { mutableStateOf(prefs.getRoutines()) }
-    var showCreateDialog by remember { mutableStateOf(false) }
+    var routineToEdit by remember { mutableStateOf<Routine?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var routineToDelete by remember { mutableStateOf<Routine?>(null) }
 
     // Poll engine state
     LaunchedEffect(Unit) {
@@ -524,9 +526,15 @@ fun CompanionAppScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("📋 4. First → Then Car Routines", fontWeight = FontWeight.Bold, color = Color.White)
+                Column {
+                    Text("📋 4. First → Then Car Routines", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Tap ✏️ to edit or 🗑️ to delete", fontSize = 11.sp, color = Color(0xFFA2ADC2))
+                }
                 Button(
-                    onClick = { showCreateDialog = true },
+                    onClick = {
+                        routineToEdit = null
+                        showEditDialog = true
+                    },
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0x2934D399))
@@ -539,11 +547,7 @@ fun CompanionAppScreen(
         items(routines) { routine ->
             val isActive = renderState?.currentTitle == routine.firstTitle || renderState?.currentTitle == routine.thenTitle
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true)
-                    },
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 color = if (isActive) Color(0x2434D399) else Color(0xFF191E2B),
                 border = androidx.compose.foundation.BorderStroke(
@@ -557,6 +561,11 @@ fun CompanionAppScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true)
+                            },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -575,52 +584,158 @@ fun CompanionAppScreen(
                         }
                     }
 
-                    Surface(
-                        shape = RoundedCornerShape(99.dp),
-                        color = Color(0x1CFFFFFF)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (isActive) "Active" else "Start ▶",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isActive) Color(0xFF34D399) else Color.White
-                        )
+                        // Edit button
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0x1AFFFFFF),
+                            modifier = Modifier.clickable {
+                                routineToEdit = routine
+                                showEditDialog = true
+                            }
+                        ) {
+                            Text(
+                                "✏️",
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        // Delete button
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0x1AFB7185),
+                            modifier = Modifier.clickable {
+                                routineToDelete = routine
+                            }
+                        ) {
+                            Text(
+                                "🗑️",
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        // Start / Active badge
+                        Surface(
+                            shape = RoundedCornerShape(99.dp),
+                            color = if (isActive) Color(0x3334D399) else Color(0x1CFFFFFF),
+                            modifier = Modifier.clickable {
+                                CalmDriveMediaService.instance?.timerEngine?.startRoutine(routine, announce = true)
+                            }
+                        ) {
+                            Text(
+                                text = if (isActive) "Active" else "Start ▶",
+                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isActive) Color(0xFF34D399) else Color.White
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    if (showCreateDialog) {
-        CreateRoutineDialog(
-            onDismiss = { showCreateDialog = false },
-            onSave = { newRoutine ->
-                val updated = listOf(newRoutine) + routines
+    // Delete Confirmation Dialog
+    if (routineToDelete != null) {
+        val toDelete = routineToDelete!!
+        AlertDialog(
+            onDismissRequest = { routineToDelete = null },
+            title = { Text("Delete Routine?", color = Color.White) },
+            text = {
+                Text(
+                    "Are you sure you want to remove '${toDelete.firstTitle}'?",
+                    color = Color(0xFFA2ADC2)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val updated = routines.filterNot { it.id == toDelete.id }
+                        val finalRoutines = if (updated.isEmpty()) DEFAULT_ROUTINES else updated
+                        routines = finalRoutines
+                        prefs.saveRoutines(finalRoutines)
+                        if (renderState?.currentTitle == toDelete.firstTitle) {
+                            CalmDriveMediaService.instance?.timerEngine?.startRoutine(finalRoutines.first(), announce = false)
+                        }
+                        routineToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFB7185))
+                ) {
+                    Text("Delete", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { routineToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Create / Edit Routine Dialog
+    if (showEditDialog) {
+        RoutineEditDialog(
+            routineToEdit = routineToEdit,
+            onDismiss = {
+                showEditDialog = false
+                routineToEdit = null
+            },
+            onSave = { savedRoutine ->
+                val index = routines.indexOfFirst { it.id == savedRoutine.id }
+                val updated = if (index >= 0) {
+                    routines.toMutableList().apply { set(index, savedRoutine) }
+                } else {
+                    listOf(savedRoutine) + routines
+                }
                 routines = updated
                 prefs.saveRoutines(updated)
-                CalmDriveMediaService.instance?.timerEngine?.startRoutine(newRoutine, announce = true)
-                showCreateDialog = false
+                CalmDriveMediaService.instance?.timerEngine?.startRoutine(savedRoutine, announce = true)
+                showEditDialog = false
+                routineToEdit = null
+            },
+            onDelete = { idToDelete ->
+                val updated = routines.filterNot { it.id == idToDelete }
+                val finalRoutines = if (updated.isEmpty()) DEFAULT_ROUTINES else updated
+                routines = finalRoutines
+                prefs.saveRoutines(finalRoutines)
+                if (renderState?.currentTitle == routineToEdit?.firstTitle) {
+                    CalmDriveMediaService.instance?.timerEngine?.startRoutine(finalRoutines.first(), announce = false)
+                }
+                showEditDialog = false
+                routineToEdit = null
             }
         )
     }
 }
 
 @Composable
-fun CreateRoutineDialog(
+fun RoutineEditDialog(
+    routineToEdit: Routine?,
     onDismiss: () -> Unit,
-    onSave: (Routine) -> Unit
+    onSave: (Routine) -> Unit,
+    onDelete: ((String) -> Unit)? = null
 ) {
-    var firstTitle by remember { mutableStateOf("") }
-    var firstIcon by remember { mutableStateOf("🏡") }
-    var firstMins by remember { mutableStateOf("15") }
-    var thenTitle by remember { mutableStateOf("") }
-    var thenIcon by remember { mutableStateOf("🍪") }
-    var thenMins by remember { mutableStateOf("5") }
+    var firstTitle by remember { mutableStateOf(routineToEdit?.firstTitle ?: "") }
+    var firstIcon by remember { mutableStateOf(routineToEdit?.firstIcon ?: "🏡") }
+    var firstMins by remember { mutableStateOf(routineToEdit?.firstMins?.toString() ?: "15") }
+    var thenTitle by remember { mutableStateOf(routineToEdit?.thenTitle ?: "") }
+    var thenIcon by remember { mutableStateOf(routineToEdit?.thenIcon ?: "🍪") }
+    var thenMins by remember { mutableStateOf(routineToEdit?.thenMins?.toString() ?: "5") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Create First → Then Routine", color = Color.White) },
+        title = {
+            Text(
+                if (routineToEdit == null) "Create First → Then Routine" else "Edit Routine",
+                color = Color.White
+            )
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -651,7 +766,7 @@ fun CreateRoutineDialog(
                 OutlinedTextField(
                     value = thenTitle,
                     onValueChange = { thenTitle = it },
-                    label = { Text("Then Activity (e.g. Snack & Hugs)") },
+                    label = { Text("Then Activity (Optional)") },
                     singleLine = true
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -670,6 +785,18 @@ fun CreateRoutineDialog(
                         singleLine = true
                     )
                 }
+
+                if (routineToEdit != null && onDelete != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedButton(
+                        onClick = { onDelete(routineToEdit.id) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFB7185)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x66FB7185))
+                    ) {
+                        Text("🗑️ Delete Routine")
+                    }
+                }
             }
         },
         confirmButton = {
@@ -677,20 +804,20 @@ fun CreateRoutineDialog(
                 onClick = {
                     if (firstTitle.isNotBlank()) {
                         val routine = Routine(
-                            id = "custom-${System.currentTimeMillis()}",
+                            id = routineToEdit?.id ?: "custom-${System.currentTimeMillis()}",
                             firstTitle = firstTitle.trim(),
                             firstIcon = firstIcon.trim().ifEmpty { "🚗" },
-                            firstMins = firstMins.toIntOrNull() ?: 10,
+                            firstMins = firstMins.toIntOrNull()?.coerceAtLeast(1) ?: 10,
                             thenTitle = thenTitle.trim().ifEmpty { null },
                             thenIcon = thenIcon.trim().ifEmpty { "🌟" },
-                            thenMins = thenMins.toIntOrNull() ?: 0,
+                            thenMins = thenMins.toIntOrNull()?.coerceAtLeast(0) ?: 0,
                             destStreet = firstTitle.trim()
                         )
                         onSave(routine)
                     }
                 }
             ) {
-                Text("Save & Start")
+                Text(if (routineToEdit == null) "Save & Start" else "Save Changes")
             }
         },
         dismissButton = {

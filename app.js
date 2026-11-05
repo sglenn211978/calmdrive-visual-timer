@@ -1033,11 +1033,70 @@ class VisualTimerApp {
             <small>First: ${r.firstMins}m${thenText}</small>
           </div>
         </div>
-        <span class="routine-start-pill">${r.id === this.activeRoutine.id ? 'Active' : 'Start ▶'}</span>
+        <div class="routine-right-actions">
+          <button class="routine-icon-btn edit" title="Edit Routine">✏️</button>
+          <button class="routine-icon-btn delete" title="Delete Routine">🗑️</button>
+          <span class="routine-start-pill">${r.id === this.activeRoutine.id ? 'Active' : 'Start ▶'}</span>
+        </div>
       `;
-      item.addEventListener('click', () => this.startRoutine(r, true));
+
+      item.querySelector('.routine-main').addEventListener('click', () => this.startRoutine(r, true));
+      item.querySelector('.routine-start-pill').addEventListener('click', () => this.startRoutine(r, true));
+
+      item.querySelector('.routine-icon-btn.edit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openRoutineEditor(r);
+      });
+
+      item.querySelector('.routine-icon-btn.delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteRoutine(r);
+      });
+
       container.appendChild(item);
     });
+  }
+
+  openRoutineEditor(r) {
+    const form = document.getElementById('routineCreatorForm');
+    document.getElementById('editRoutineId').value = r ? r.id : '';
+    document.getElementById('formHeaderTitle').textContent = r ? `Edit: ${r.firstTitle}` : 'New Routine';
+    document.getElementById('inputFirstTitle').value = r ? r.firstTitle : '';
+    document.getElementById('inputFirstIcon').value = r ? r.firstIcon : '🏡';
+    document.getElementById('inputFirstMins').value = r ? r.firstMins : '15';
+    document.getElementById('inputThenTitle').value = r && r.thenTitle ? r.thenTitle : '';
+    document.getElementById('inputThenIcon').value = r && r.thenIcon ? r.thenIcon : '🍪';
+    document.getElementById('inputThenMins').value = r && r.thenMins ? r.thenMins : '5';
+    document.getElementById('btnSubmitRoutine').textContent = r ? 'Save Changes' : 'Save & Start Routine';
+    document.getElementById('btnCancelRoutine').classList.remove('hidden');
+    form.classList.remove('hidden');
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  deleteRoutine(r) {
+    if (confirm(`Are you sure you want to delete "${r.firstTitle}"?`)) {
+      this.routines = this.routines.filter((x) => x.id !== r.id);
+      if (this.routines.length === 0) {
+        this.routines = [...DEFAULT_ROUTINES];
+      }
+      this.saveRoutines();
+      if (this.activeRoutine.id === r.id) {
+        this.startRoutine(this.routines[0], false);
+      }
+      this.renderRoutinesList();
+      this.renderDrawerContent();
+      this.showCarToast('🗑️', 'Routine Deleted', `Removed "${r.firstTitle}"`);
+    }
+  }
+
+  closeRoutineEditor() {
+    const form = document.getElementById('routineCreatorForm');
+    form.reset();
+    document.getElementById('editRoutineId').value = '';
+    document.getElementById('formHeaderTitle').textContent = 'New Routine';
+    document.getElementById('btnSubmitRoutine').textContent = 'Save & Start Routine';
+    document.getElementById('btnCancelRoutine').classList.add('hidden');
+    form.classList.add('hidden');
   }
 
   renderDrawerContent() {
@@ -1272,14 +1331,23 @@ class VisualTimerApp {
       this.showCarToast('🗣️', 'Spoken Transition Preview', sample);
     });
 
-    // Custom Routine Creator Form
+    // Custom Routine Creator & Editor Form
     const form = document.getElementById('routineCreatorForm');
     document.getElementById('btnToggleRoutineCreator').addEventListener('click', () => {
-      form.classList.toggle('hidden');
+      if (form.classList.contains('hidden')) {
+        this.openRoutineEditor(null);
+      } else {
+        this.closeRoutineEditor();
+      }
+    });
+
+    document.getElementById('btnCancelRoutine').addEventListener('click', () => {
+      this.closeRoutineEditor();
     });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const editId = document.getElementById('editRoutineId').value;
       const firstTitle = document.getElementById('inputFirstTitle').value.trim();
       const firstIcon = document.getElementById('inputFirstIcon').value.trim() || '🚗';
       const firstMins = Math.max(1, parseInt(document.getElementById('inputFirstMins').value, 10) || 10);
@@ -1289,27 +1357,48 @@ class VisualTimerApp {
 
       if (!firstTitle) return;
 
-      const newRoutine = {
-        id: `custom-${Date.now()}`,
-        firstTitle,
-        firstIcon,
-        firstMins,
-        thenTitle,
-        thenIcon,
-        thenMins,
-        destStreet: firstTitle
-      };
+      if (editId) {
+        // Update existing routine
+        const idx = this.routines.findIndex((x) => x.id === editId);
+        if (idx !== -1) {
+          const updated = {
+            ...this.routines[idx],
+            firstTitle,
+            firstIcon,
+            firstMins,
+            thenTitle,
+            thenIcon,
+            thenMins,
+            destStreet: firstTitle
+          };
+          this.routines[idx] = updated;
+          this.saveRoutines();
+          this.closeRoutineEditor();
+          this.renderRoutinesList();
+          this.renderDrawerContent();
+          if (this.activeRoutine.id === editId) {
+            this.startRoutine(updated, true);
+          }
+          this.showCarToast('✏️', 'Routine Updated', `Saved changes to "${firstTitle}"`);
+        }
+      } else {
+        // Create new routine
+        const newRoutine = {
+          id: `custom-${Date.now()}`,
+          firstTitle,
+          firstIcon,
+          firstMins,
+          thenTitle,
+          thenIcon,
+          thenMins,
+          destStreet: firstTitle
+        };
 
-      this.routines.unshift(newRoutine);
-      this.saveRoutines();
-      form.reset();
-      document.getElementById('inputFirstIcon').value = '🏡';
-      document.getElementById('inputFirstMins').value = '15';
-      document.getElementById('inputThenIcon').value = '🍪';
-      document.getElementById('inputThenMins').value = '5';
-      form.classList.add('hidden');
-
-      this.startRoutine(newRoutine, true);
+        this.routines.unshift(newRoutine);
+        this.saveRoutines();
+        this.closeRoutineEditor();
+        this.startRoutine(newRoutine, true);
+      }
     });
   }
 }
