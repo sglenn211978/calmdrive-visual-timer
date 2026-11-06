@@ -82,9 +82,6 @@ object TimerArtworkRenderer {
             }
         }
 
-        // 3. Draw Bottom "First -> Then" pill inside the artwork
-        drawBottomFooter(canvas, w, h, state, stageColor, stageDot)
-
         return cachedBitmap
     }
 
@@ -97,9 +94,9 @@ object TimerArtworkRenderer {
         stageColor: Int
     ) {
         val cx = w * 0.5f
-        val cy = h * 0.43f
-        val outerR = w * 0.33f
-        val innerR = w * 0.165f
+        val cy = h * 0.5f
+        val outerR = w * 0.43f
+        val innerR = w * 0.22f
 
         // 12 Clock Tick Marks
         val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -109,10 +106,10 @@ object TimerArtworkRenderer {
         for (i in 0 until 12) {
             val angle = (i.toFloat() / 12f) * Math.PI.toFloat() * 2f - Math.PI.toFloat() / 2f
             val isQuarter = i % 3 == 0
-            val r1 = outerR + 10f
-            val r2 = outerR + (if (isQuarter) 22f else 16f)
-            tickPaint.color = if (isQuarter) 0x77FFFFFF else 0x33FFFFFF
-            tickPaint.strokeWidth = if (isQuarter) 4f else 2.5f
+            val r1 = outerR + 6f
+            val r2 = outerR + (if (isQuarter) 24f else 16f)
+            tickPaint.color = if (isQuarter) 0x99FFFFFF.toInt() else 0x44FFFFFF
+            tickPaint.strokeWidth = if (isQuarter) 5f else 3f
             c.drawLine(
                 cx + cos(angle) * r1, cy + sin(angle) * r1,
                 cx + cos(angle) * r2, cy + sin(angle) * r2,
@@ -122,12 +119,12 @@ object TimerArtworkRenderer {
 
         // Empty track ring
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0x18FFFFFF
+            color = 0x22FFFFFF
             style = Paint.Style.FILL
         }
         c.drawCircle(cx, cy, outerR, trackPaint)
 
-        // Shrinking Wedge Arc
+        // Shrinking Wedge Arc (Time Timer)
         val discPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = stageColor
             style = Paint.Style.FILL
@@ -137,35 +134,35 @@ object TimerArtworkRenderer {
 
         // Center Hub Circle
         val hubPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xFF111623.toInt()
+            color = 0xFF0F1523.toInt()
             style = Paint.Style.FILL
         }
         c.drawCircle(cx, cy, innerR, hubPaint)
 
         val hubStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0x33FFFFFF
+            color = 0x55FFFFFF
             style = Paint.Style.STROKE
-            strokeWidth = 4f
+            strokeWidth = 5f
         }
         c.drawCircle(cx, cy, innerR, hubStrokePaint)
 
         // Activity Icon in Center Hub
         val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = w * 0.12f
+            textSize = if (state.numberMode == NumberMode.NONE) w * 0.18f else w * 0.14f
             textAlign = Paint.Align.CENTER
         }
-        val iconY = if (state.numberMode == NumberMode.NONE) cy + (w * 0.04f) else cy
+        val iconY = if (state.numberMode == NumberMode.NONE) cy + (w * 0.06f) else cy - (w * 0.01f)
         c.drawText(state.currentIcon, cx, iconY, iconPaint)
 
-        // Optional Number Readout below icon
+        // Bold Number Readout below icon
         if (state.numberMode != NumberMode.NONE) {
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
-                textSize = w * 0.055f
+                textSize = w * 0.075f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 textAlign = Paint.Align.CENTER
             }
-            c.drawText(state.formattedTime, cx, cy + (w * 0.08f), textPaint)
+            c.drawText(state.formattedTime, cx, cy + (w * 0.11f), textPaint)
         }
     }
 
@@ -340,68 +337,26 @@ object TimerArtworkRenderer {
 
     private fun drawCelebration(c: Canvas, w: Float, h: Float, stageColor: Int) {
         val cx = w * 0.5f
-        val cy = h * 0.42f
+        val cy = h * 0.5f
 
         val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = stageColor
             style = Paint.Style.FILL
         }
-        c.drawCircle(cx, cy, w * 0.25f, circlePaint)
+        c.drawCircle(cx, cy, w * 0.36f, circlePaint)
 
         val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 80f
+            textSize = 110f
             textAlign = Paint.Align.CENTER
         }
-        c.drawText("🎉", cx, cy + 18f, iconPaint)
+        c.drawText("🎉", cx, cy + 10f, iconPaint)
 
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = 34f
+            textSize = 42f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        c.drawText("All Done!", cx, cy + 76f, textPaint)
-    }
-
-    private fun drawBottomFooter(
-        c: Canvas,
-        w: Float,
-        h: Float,
-        state: RenderState,
-        stageColor: Int,
-        stageDot: String
-    ) {
-        val pillW = w * 0.86f
-        val pillH = 62f
-        val pillX = (w - pillW) / 2f
-        val pillY = h - pillH - 22f
-
-        val pillBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0x22FFFFFF
-            style = Paint.Style.FILL
-        }
-        c.drawRoundRect(RectF(pillX, pillY, pillX + pillW, pillY + pillH), 30f, 30f, pillBg)
-
-        val pillStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = if (state.isPaused) 0xFFFBBF24.toInt() else 0x33FFFFFF
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-        }
-        c.drawRoundRect(RectF(pillX, pillY, pillX + pillW, pillY + pillH), 30f, 30f, pillStroke)
-
-        val footerText = when {
-            state.isPaused -> "⏸ Timer Paused"
-            state.isFirstStep && state.thenTitle != null -> "Then: ${state.thenIcon ?: "✨"} ${state.thenTitle}"
-            !state.isFirstStep -> "✨ Step 2: ${state.currentIcon} ${state.currentTitle}"
-            else -> "$stageDot ${state.currentTitle}"
-        }
-
-        val footerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xFFE2E8F0.toInt()
-            textSize = 21f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            textAlign = Paint.Align.CENTER
-        }
-        c.drawText(footerText, w * 0.5f, pillY + pillH / 2f + 7f, footerPaint)
+        c.drawText("All Done!", cx, cy + 85f, textPaint)
     }
 }

@@ -71,7 +71,9 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
             updateMediaSessionAndNotification(renderState)
         }
 
-        // Start initial state in ready/paused mode
+        // Start silent keep-alive audio so Android Auto immediately recognizes
+        // CalmDrive as active media and persistently docks the card beside Google Maps.
+        silentKeepAlive.start()
         updateMediaSessionAndNotification(timerEngine.buildCurrentState())
     }
 
@@ -87,7 +89,7 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
             if (!timerEngine.isPaused) {
                 timerEngine.togglePlayPause()
             }
-            silentKeepAlive.pause()
+            // Keep silentKeepAlive running so Android Auto does not drop the Coolwalk split-screen card
         }
 
         override fun onSkipToNext() {
@@ -96,14 +98,11 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
 
         override fun onCustomAction(action: String?, extras: Bundle?) {
             when (action) {
-                ACTION_SUBTRACT_1M -> timerEngine.adjustTime(-60)
-                ACTION_ADD_1M -> timerEngine.adjustTime(60)
-                ACTION_ADD_5M -> timerEngine.adjustTime(300)
                 ACTION_RESET -> {
                     timerEngine.resetTimer()
-                    silentKeepAlive.pause()
+                    // Keep silent keep-alive active so the card stays on screen
                 }
-                ACTION_SKIP_THEN -> timerEngine.skipToThen()
+                ACTION_ADD_1M -> timerEngine.adjustTime(60)
             }
         }
 
@@ -136,52 +135,53 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
 
         val titleText = when {
             state.remainingSec <= 0 -> "🎉 Arrived • ${state.currentTitle} ${state.currentIcon}"
+            state.remainingSec == state.totalSec && state.isPaused -> "Ready • ${state.currentTitle} ${state.currentIcon}"
             state.numberMode == NumberMode.NONE -> "${state.currentTitle} ${state.currentIcon}"
             else -> "${state.formattedTime} left • ${state.currentTitle} ${state.currentIcon}"
         }
 
         val subtitleText = when {
-            state.remainingSec == state.totalSec && state.isPaused -> "Ready • Tap Play to start"
+            state.remainingSec <= 0 -> "Routine Complete"
+            state.remainingSec == state.totalSec && state.isPaused -> "Tap Play to begin countdown"
             state.isPaused -> "⏸ Paused (Tap Play to resume)"
             state.isFirstStep && !state.thenTitle.isNullOrEmpty() ->
-                "Then: ${state.thenIcon ?: "✨"} ${state.thenTitle} (${timerEngine.activeRoutine.thenMins}m)"
+                "Next: ${state.thenIcon ?: "✨"} ${state.thenTitle} (${timerEngine.activeRoutine.thenMins}m)"
             !state.isFirstStep -> "Step 2 of 2 • Doing great!"
-            else -> "Visual Timer"
+            else -> "Visual Timer Active"
         }
 
         // 2. Update MediaMetadataCompat
+        // Setting METADATA_KEY_DURATION to -1L tells Android Auto this is a live non-seekable stream,
+        // which completely eliminates the Material UI squiggly track seekbar.
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, titleText)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitleText)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "CalmDrive")
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, state.totalSec * 1000L)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, -1L)
             .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork)
             .build()
         mediaSession.setMetadata(metadata)
 
-        // 3. Configure PlaybackStateCompat with CustomActions for the car screen
+        // 3. Configure PlaybackStateCompat with exactly 3 intuitive car controls:
+        // [ ↺ Reset ] [ ▶ Play / ⏸ Pause ] [ +1m ]
         val playbackStateVal = if (state.isPaused) {
             PlaybackStateCompat.STATE_PAUSED
         } else {
             PlaybackStateCompat.STATE_PLAYING
         }
 
-        val elapsedMillis = ((state.totalSec - state.remainingSec) * 1000L).coerceAtLeast(0L)
-        val playbackSpeed = if (state.isPaused) 0f else 1f
-
         val stateBuilder = PlaybackStateCompat.Builder()
             .setActions(
                 PlaybackStateCompat.ACTION_PLAY or
                 PlaybackStateCompat.ACTION_PAUSE or
-                PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                PlaybackStateCompat.ACTION_PLAY_PAUSE
             )
-            .setState(playbackStateVal, elapsedMillis, playbackSpeed)
+            .setState(playbackStateVal, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, if (state.isPaused) 0f else 1f)
             .addCustomAction(
                 PlaybackStateCompat.CustomAction.Builder(
-                    ACTION_SUBTRACT_1M,
-                    getString(R.string.action_minus_1m),
-                    R.drawable.ic_minus_1m
+                    ACTION_RESET,
+                    getString(R.string.action_reset),
+                    R.drawable.ic_reset
                 ).build()
             )
             .addCustomAction(
@@ -191,30 +191,6 @@ class CalmDriveMediaService : MediaBrowserServiceCompat() {
                     R.drawable.ic_plus_1m
                 ).build()
             )
-            .addCustomAction(
-                PlaybackStateCompat.CustomAction.Builder(
-                    ACTION_ADD_5M,
-                    getString(R.string.action_plus_5m),
-                    R.drawable.ic_plus_5m
-                ).build()
-            )
-            .addCustomAction(
-                PlaybackStateCompat.CustomAction.Builder(
-                    ACTION_RESET,
-                    getString(R.string.action_reset),
-                    R.drawable.ic_reset
-                ).build()
-            )
-
-        if (state.isFirstStep && !state.thenTitle.isNullOrEmpty()) {
-            stateBuilder.addCustomAction(
-                PlaybackStateCompat.CustomAction.Builder(
-                    ACTION_SKIP_THEN,
-                    getString(R.string.action_skip_then),
-                    R.drawable.ic_timer
-                ).build()
-            )
-        }
 
         mediaSession.setPlaybackState(stateBuilder.build())
 

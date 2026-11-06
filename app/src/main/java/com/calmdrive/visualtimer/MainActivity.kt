@@ -260,29 +260,30 @@ fun CompanionAppScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Quick Actions
+                        // Quick Actions (Mirroring Car Screen 3-button layout)
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val engine = CalmDriveMediaService.instance?.timerEngine
+
                             Button(
-                                onClick = { engine?.adjustTime(-60) },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                onClick = { engine?.resetTimer() },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x1FFFFFFF))
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x24FFFFFF))
                             ) {
-                                Text("-1m", fontSize = 12.sp, color = Color.White)
+                                Text("↺ Reset", fontSize = 12.sp, color = Color.White)
                             }
 
                             Button(
                                 onClick = { engine?.togglePlayPause() },
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8AB4F8))
                             ) {
                                 Text(
-                                    if (renderState?.isPaused == true) "▶ Play" else "⏸ Pause",
+                                    if (renderState?.isPaused == true) "▶ Start" else "⏸ Pause",
                                     fontSize = 12.sp,
                                     color = Color(0xFF09101D),
                                     fontWeight = FontWeight.Bold
@@ -291,20 +292,11 @@ fun CompanionAppScreen(
 
                             Button(
                                 onClick = { engine?.adjustTime(60) },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x1FFFFFFF))
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x24FFFFFF))
                             ) {
                                 Text("+1m", fontSize = 12.sp, color = Color.White)
-                            }
-
-                            Button(
-                                onClick = { engine?.resetTimer() },
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0x1FFFFFFF))
-                            ) {
-                                Text("↺ Reset", fontSize = 12.sp, color = Color(0xFFA2ADC2))
                             }
                         }
                     }

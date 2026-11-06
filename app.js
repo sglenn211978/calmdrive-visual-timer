@@ -196,25 +196,22 @@ class AutoArtworkRenderer {
     } else if (state.visualStyle === 'blocks') {
       this.drawCalmBlocks(ctx, W, H, state, ratio, stageColor);
     }
-
-    // 3. Draw Bottom "First -> Then" / Time Banner inside the Artwork
-    this.drawBottomFooter(ctx, W, H, state, stageColor);
   }
 
   static drawShrinkingDisc(ctx, W, H, state, ratio, stageColor) {
     const cx = W * 0.5;
-    const cy = H * 0.43;
-    const outerR = W * 0.33;
-    const innerR = W * 0.165;
+    const cy = H * 0.5;
+    const outerR = W * 0.43;
+    const innerR = W * 0.22;
 
     // 12 Clock Tick Marks around the disc
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
       const isQuarter = i % 3 === 0;
-      const r1 = outerR + 10;
-      const r2 = outerR + (isQuarter ? 22 : 16);
-      ctx.strokeStyle = isQuarter ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = isQuarter ? 4 : 2.5;
+      const r1 = outerR + 6;
+      const r2 = outerR + (isQuarter ? 24 : 16);
+      ctx.strokeStyle = isQuarter ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = isQuarter ? 5 : 3;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
@@ -223,7 +220,7 @@ class AutoArtworkRenderer {
     }
 
     // Background Empty Track Ring
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.beginPath();
     ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
     ctx.fill();
@@ -235,7 +232,7 @@ class AutoArtworkRenderer {
     ctx.save();
     ctx.fillStyle = stageColor.main;
     ctx.shadowColor = stageColor.main;
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = 20;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, outerR, startAngle, endAngle, false);
@@ -244,27 +241,28 @@ class AutoArtworkRenderer {
     ctx.restore();
 
     // Center Hub Circle (Holds Activity Icon & Time Readout)
-    ctx.fillStyle = '#111623';
+    ctx.fillStyle = '#0f1523';
     ctx.beginPath();
     ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.stroke();
 
     // Activity Icon in Center
-    ctx.font = `${Math.round(W * 0.12)}px sans-serif`;
+    const iconSize = state.numberMode === 'none' ? Math.round(W * 0.18) : Math.round(W * 0.14);
+    ctx.font = `${iconSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const iconY = state.numberMode === 'none' ? cy : cy - W * 0.032;
+    const iconY = state.numberMode === 'none' ? cy : cy - W * 0.038;
     ctx.fillText(state.currentIcon || '🚗', cx, iconY);
 
-    // Optional Number Readout below Icon in Center Hub
+    // Bold Number Readout below Icon in Center Hub
     if (state.numberMode !== 'none') {
       ctx.fillStyle = '#ffffff';
-      ctx.font = `800 ${Math.round(W * 0.055)}px "Outfit", sans-serif`;
-      ctx.fillText(state.formattedShortTime, cx, cy + W * 0.058);
+      ctx.font = `800 ${Math.round(W * 0.075)}px "Outfit", sans-serif`;
+      ctx.fillText(state.formattedShortTime, cx, cy + W * 0.065);
     }
   }
 
@@ -426,22 +424,22 @@ class AutoArtworkRenderer {
 
   static drawCelebration(ctx, W, H, state, stageColor) {
     const cx = W * 0.5;
-    const cy = H * 0.42;
+    const cy = H * 0.5;
 
     ctx.save();
     ctx.fillStyle = stageColor.main;
     ctx.beginPath();
-    ctx.arc(cx, cy, W * 0.25, 0, Math.PI * 2);
+    ctx.arc(cx, cy, W * 0.36, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.font = '84px sans-serif';
+    ctx.font = '100px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎉', cx, cy - 10);
+    ctx.fillText('🎉', cx, cy - 14);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '800 34px "Outfit", sans-serif';
-    ctx.fillText('All Done!', cx, cy + 72);
+    ctx.font = '800 42px "Outfit", sans-serif';
+    ctx.fillText('All Done!', cx, cy + 85);
     ctx.restore();
   }
 
@@ -952,42 +950,43 @@ class VisualTimerApp {
 
     if (this.remainingSec <= 0) {
       titleEl.textContent = `🎉 Arrived • ${currentTitle} ${currentIcon}`;
+    } else if (this.remainingSec === this.totalSec && this.isPaused) {
+      titleEl.textContent = `Ready • ${currentTitle} ${currentIcon}`;
     } else if (this.numberMode === 'none') {
       titleEl.textContent = `${stage.dot} ${currentTitle} ${currentIcon}`;
     } else {
       titleEl.textContent = `${stage.dot} ${shortTime} left • ${currentTitle} ${currentIcon}`;
     }
 
-    if (this.isPaused) {
-      const isAtStart = this.remainingSec === this.totalSec;
-      subEl.textContent = isAtStart ? '⏸ Ready — Tap Play to start' : '⏸ Paused — Tap Play to resume';
+    if (this.remainingSec <= 0) {
+      subEl.textContent = 'Routine Complete';
+    } else if (this.remainingSec === this.totalSec && this.isPaused) {
+      subEl.textContent = 'Tap Play to begin countdown';
+    } else if (this.isPaused) {
+      subEl.textContent = '⏸ Paused — Tap Play to resume';
     } else if (this.step === 'first' && this.activeRoutine.thenTitle) {
-      subEl.textContent = `Then: ${this.activeRoutine.thenIcon || '✨'} ${this.activeRoutine.thenTitle} (${this.activeRoutine.thenMins}m)`;
+      subEl.textContent = `Next: ${this.activeRoutine.thenIcon || '✨'} ${this.activeRoutine.thenTitle} (${this.activeRoutine.thenMins}m)`;
     } else {
       subEl.textContent = `Step 2 of 2 • Doing great!`;
     }
 
-    // Progress Bar & Backdrop Tint
-    const progressFill = document.getElementById('carMediaProgressFill');
-    progressFill.style.width = `${(1 - ratio) * 100}%`;
-    progressFill.style.backgroundColor = stage.main;
-
+    // Backdrop Tint
     const backdrop = document.getElementById('mediaTileBackdrop');
-    backdrop.style.background = `radial-gradient(circle at 50% 35%, ${stage.main}, transparent 72%)`;
+    if (backdrop) {
+      backdrop.style.background = `radial-gradient(circle at 50% 35%, ${stage.main}, transparent 72%)`;
+    }
 
-    // Play/Pause Buttons & Skip-to-Then visibility
+    // Play/Pause Buttons
     const playIcon = this.isPaused ? '▶' : '⏸';
     const isAtStart = this.remainingSec === this.totalSec;
-    document.getElementById('carBtnPlayPause').textContent = playIcon;
-    document.getElementById('phoneBtnPlayPause').textContent = this.isPaused
-      ? (isAtStart ? '▶ Start' : '▶ Resume')
-      : '⏸ Pause';
+    const carPlayBtn = document.getElementById('carBtnPlayPause');
+    if (carPlayBtn) carPlayBtn.textContent = playIcon;
 
-    const skipBtn = document.getElementById('carBtnSkipThen');
-    if (this.step === 'first' && this.activeRoutine.thenTitle && this.activeRoutine.thenMins > 0) {
-      skipBtn.classList.remove('hidden');
-    } else {
-      skipBtn.classList.add('hidden');
+    const phonePlayBtn = document.getElementById('phoneBtnPlayPause');
+    if (phonePlayBtn) {
+      phonePlayBtn.textContent = this.isPaused
+        ? (isAtStart ? '▶ Start' : '▶ Resume')
+        : '⏸ Pause';
     }
 
     // 3. Update Google Maps Card ETA Display
@@ -1247,17 +1246,14 @@ class VisualTimerApp {
       });
     });
 
-    // Car Transport Controls
+    // Car Transport Controls (Streamlined 3 Controls)
+    document.getElementById('carBtnReset').addEventListener('click', () => this.resetTimer());
     document.getElementById('carBtnPlayPause').addEventListener('click', () => {
       this.isPaused = !this.isPaused;
       this.updateAllUI();
       this.renderRoutinesList();
     });
-    document.getElementById('carBtnMinus1').addEventListener('click', () => this.adjustTime(-60));
     document.getElementById('carBtnPlus1').addEventListener('click', () => this.adjustTime(60));
-    document.getElementById('carBtnPlus5').addEventListener('click', () => this.adjustTime(300));
-    document.getElementById('carBtnReset').addEventListener('click', () => this.resetTimer());
-    document.getElementById('carBtnSkipThen').addEventListener('click', () => this.switchToThenStep());
 
     // Tap Car Artwork to cycle visual style quickly
     document.getElementById('mediaArtworkWrapper').addEventListener('click', () => {
@@ -1319,17 +1315,16 @@ class VisualTimerApp {
       this.simulateMapsTraffic(-2, 'faster');
     });
 
-    // Phone Controls
+    // Phone Controls (Streamlined 3 Controls)
+    document.getElementById('phoneBtnReset').addEventListener('click', () => {
+      this.resetTimer();
+    });
     document.getElementById('phoneBtnPlayPause').addEventListener('click', () => {
       this.isPaused = !this.isPaused;
       this.updateAllUI();
       this.renderRoutinesList();
     });
-    document.getElementById('phoneBtnMinus1').addEventListener('click', () => this.adjustTime(-60));
     document.getElementById('phoneBtnPlus1').addEventListener('click', () => this.adjustTime(60));
-    document.getElementById('phoneBtnReset').addEventListener('click', () => {
-      this.resetTimer();
-    });
 
     // Phone Visual Style Picker
     document.querySelectorAll('.style-card-btn').forEach((btn) => {

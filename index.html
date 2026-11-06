@@ -168,32 +168,16 @@
                 <div class="media-subtitle" id="carMediaSubtitle">Then: 🎒 Drop-off Hug (2 min)</div>
               </div>
 
-              <!-- Native PlaybackState Progress Bar -->
-              <div class="media-progress-container">
-                <div class="media-progress-track">
-                  <div class="media-progress-fill" id="carMediaProgressFill"></div>
-                </div>
-              </div>
-
-              <!-- Transport & CustomActions Row (PlaybackStateCompat) -->
-              <div class="media-transport-controls">
-                <button class="transport-btn custom-action" id="carBtnMinus1" title="CustomAction: Subtract 1 Minute (-1m)">
-                  -1m
+              <!-- Transport & CustomActions Row (Streamlined 3 Controls) -->
+              <div class="media-transport-controls streamlined">
+                <button class="transport-btn custom-action reset-btn" id="carBtnReset" title="CustomAction: Reset Timer (↺)">
+                  ↺
                 </button>
                 <button class="transport-btn primary-play" id="carBtnPlayPause" title="Play / Pause Countdown">
-                  ⏸
+                  ▶
                 </button>
                 <button class="transport-btn custom-action" id="carBtnPlus1" title="CustomAction: Add 1 Minute (+1m)">
                   +1m
-                </button>
-                <button class="transport-btn custom-action" id="carBtnPlus5" title="CustomAction: Add 5 Minutes (+5m)">
-                  +5m
-                </button>
-                <button class="transport-btn custom-action" id="carBtnReset" title="CustomAction: Reset Timer (↺)">
-                  ↺
-                </button>
-                <button class="transport-btn custom-action skip-then hidden" id="carBtnSkipThen" title="Jump to 'Then' Activity Now">
-                  ⏭ Then
                 </button>
               </div>
 
@@ -268,17 +252,16 @@
             <div class="phone-active-top">
               <canvas id="phonePreviewCanvas" width="220" height="220"></canvas>
               <div class="phone-active-info">
-                <span class="step-pill" id="phoneStepPill">FIRST • NOW RUNNING</span>
+                <span class="step-pill" id="phoneStepPill">READY • TAP PLAY</span>
                 <h3 id="phoneActiveTitle">🏫 School Drop-off</h3>
                 <div class="phone-time-readout" id="phoneTimeReadout">15:00</div>
                 <div class="phone-then-preview" id="phoneThenPreview">
                   <span>Then:</span> <strong id="phoneThenLabel">🎒 Drop-off Hug (2m)</strong>
                 </div>
                 <div class="phone-quick-actions">
-                  <button class="p-action-btn" id="phoneBtnMinus1">-1m</button>
-                  <button class="p-action-btn primary" id="phoneBtnPlayPause">⏸ Pause</button>
+                  <button class="p-action-btn" id="phoneBtnReset" title="Reset Timer">↺ Reset</button>
+                  <button class="p-action-btn primary" id="phoneBtnPlayPause">▶ Start</button>
                   <button class="p-action-btn" id="phoneBtnPlus1">+1m</button>
-                  <button class="p-action-btn" id="phoneBtnReset" title="Reset Timer">↺</button>
                 </div>
               </div>
             </div>

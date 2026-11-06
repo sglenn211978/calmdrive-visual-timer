@@ -729,6 +729,26 @@ body {
   box-shadow: 0 4px 14px rgba(138, 180, 248, 0.4);
 }
 
+.media-transport-controls.streamlined {
+  gap: 18px;
+  padding: 8px 0;
+}
+
+.media-transport-controls.streamlined .transport-btn.custom-action {
+  height: 48px;
+  min-width: 58px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.media-transport-controls.streamlined .transport-btn.primary-play {
+  width: 56px;
+  height: 56px;
+  font-size: 1.35rem;
+}
+
 .transport-btn.primary-play:hover {
   background: #a3c6ff;
 }
